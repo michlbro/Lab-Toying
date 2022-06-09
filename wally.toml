@@ -1,0 +1,11 @@
+[package]
+name = "konou/lab-toying"
+version = "0.1.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+
+[dependencies]
+knit = "sleitnick/knit@^1.4"
+promise = "evaera/promise@4.0.0"
+fusion = "ruizukun-dev/fusion@1.0.0"
+datastore2 = "nidoxs/datastore2@1.4.0"

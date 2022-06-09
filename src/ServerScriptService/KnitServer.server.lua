@@ -1,0 +1,10 @@
+-- @ Knit Controller, Server controller and component controller.
+
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local knit = require(replicatedStorage.Packages.knit)
+
+knit.AddServicesDeep(script.Parent.services)
+
+knit.Start():andThen(function()
+    
+end):catch(warn)
