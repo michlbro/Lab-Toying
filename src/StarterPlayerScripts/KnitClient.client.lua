@@ -3,8 +3,13 @@
 local replicatedStorage = game:GetService("ReplicatedStorage")
 local knit = require(replicatedStorage.Packages.knit)
 
-knit.AddServicesDeep(replicatedStorage)
+for _, v in pairs(replicatedStorage.controller:GetDescendants()) do
+    if v:IsA("ModuleScript") and v.Name:match("Controller$") then
+        require(v)
+    end
+end
+
 
 knit.Start():andThen(function()
-    
+    print("[KNIT-CLIENT: Started.")
 end):catch(warn)

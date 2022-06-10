@@ -26,21 +26,29 @@ function moneyService._checkPlayer(self, player: player)
     
     local playerMoneyDataStore = knit.GetService("dataService"):getData(player, self._dataName)
     self._playerMoney[player] = playerMoneyDataStore
+
     return playerMoneyDataStore
+end
+
+function moneyService._onPlayerAdded(self, player: Player)
+    local playerMoneyDataStore = self._checkPlayer(self, player)
+
+    playerMoneyDataStore:onUpdate(function(value)
+        self._moneyChanged(self, player, value)
+    end)
 end
 
 -- Client Events --
 
-local function moneyChanged(player: Player, value)
-    self.client.onMoneyChange:FireClient(player, value)
+--  Callback function for clients
+function moneyService._moneyChanged(self, player: Player, value: number)
+    self.Client.onMoneyChange:FireClient(player, value)
 end
 
--- Get data store of player (client)
-function moneyService.Client.getMoney(player: player)
-    return self.Server._checkPlayer(self, player):Get(self._defaultAmount)
+-- Get data of player (client)
+function moneyService.Client:getData(player: Player)
+    return self.Server._checkPlayer(self, player):Get(self.Server._defaultAmount)
 end
-
-function moneyService.Client.getPla
 
 -- --
 
@@ -62,20 +70,12 @@ end
 -- @ Player event here.
 function moneyService:KnitStart()
     players.PlayerAdded:Connect(function(player)
-        -- @ Get datastore service
-        -- @ Get playerdata store
-        local playerMoneyDataStore = knit.GetService("dataService"):getData(player, self._dataName)
-        self._playerMoney[player] = playerMoneyDataStore
+        self._onPlayerAdded(player)
     end)
 
     for _, player in pairs(players:GetPlayers()) do
         task.spawn(function()
-            if not self._playerMoney[player] then
-                -- @ Get datastore service
-                -- @ Get playerdata store
-                local playerMoneyDataStore = knit.GetService("dataService"):getData(player, self._dataName)
-                self._playerMoney[player] = playerMoneyDataStore
-            end
+            self._onPlayerAdded(player)
         end)
     end
 end

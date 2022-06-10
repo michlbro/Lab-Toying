@@ -20,7 +20,7 @@ local dataService = knit.CreateService {
 }
 
 -- @ get data store.
-function dataService:getData(player: Player, key: string, original)
+function dataService:getData(player: Player, key: string)
     return dataStore2(key, player)
 end
 
