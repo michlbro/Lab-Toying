@@ -11,7 +11,7 @@ local knit = require(replicatedStorage.Packages.knit)
 local moneyService = knit.CreateService {
     Name = "moneyService",
     Client = {
-        onMoneyChange = knit.CreateSignal()
+        onMoneyChange = knit.CreateSignal(),
     },
     _defaultAmount = 100,
     _dataName = "Money",
@@ -32,8 +32,7 @@ end
 
 function moneyService._onPlayerAdded(self, player: Player)
     local playerMoneyDataStore = self._checkPlayer(self, player)
-
-    playerMoneyDataStore:onUpdate(function(value)
+    playerMoneyDataStore:OnUpdate(function(value)
         self._moneyChanged(self, player, value)
     end)
 end
@@ -70,12 +69,12 @@ end
 -- @ Player event here.
 function moneyService:KnitStart()
     players.PlayerAdded:Connect(function(player)
-        self._onPlayerAdded(player)
+        self._onPlayerAdded(self, player)
     end)
 
     for _, player in pairs(players:GetPlayers()) do
         task.spawn(function()
-            self._onPlayerAdded(player)
+            self._onPlayerAdded(self, player)
         end)
     end
 end

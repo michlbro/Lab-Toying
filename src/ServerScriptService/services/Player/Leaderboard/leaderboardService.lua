@@ -33,11 +33,18 @@ function leaderboardService._onPlayerAdded(self, player: Player)
 
     -- @ Callback function for when money changes.
     local moneyService = knit.GetService("moneyService")
-    self._playerConnections[player] = moneyService.onMoneyChange:Connect(function(value)
-        local moneyValue: NumberValue = leaderboardFolder:FindFirstChild("Money")
-        if leaderboardFolder then
-            moneyValue.Value = tonumber(value)
-        end
+    self._playerLeaderboard[player].Money.Value = moneyService:getMoney(player)
+    self._playerConnections[player] = moneyService:getDataStore(player)
+    self._playerConnections[player]:OnUpdate(function(value)
+        self._playerLeaderboard[player].Money.Value = tonumber(value)
+    end)
+
+    -- @ Set joining team
+    local teamsService = knit.GetService("teamsService")
+    teamsService:setTeam(player)
+    self._playerLeaderboard[player].Team.Value = player.Team.Name
+    teamsService:getTeamCallback(player):Connect(function(value)
+        self._playerLeaderboard[player].Team.Value = value.Name
     end)
 end
 
@@ -46,8 +53,8 @@ function leaderboardService:KnitStart()
         self._onPlayerAdded(self, player)
     end)
     players.PlayerRemoving:Connect(function(player)
-        self._playerConnections[player]:Disconnect()
         self._playerConnections[player] = nil
+        self._playerLeaderboard[player] = nil
     end)
 end
 
