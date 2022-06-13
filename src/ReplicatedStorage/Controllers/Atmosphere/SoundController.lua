@@ -9,7 +9,6 @@ local players: Players = game:GetService("Players")
 
 -- @ Packages
 local knit = require(replicatedStorage.Packages.knit)
-local promise = require(replicatedStorage.Packages.promise)
 
 -- @ Player variables
 local player: Player = players.LocalPlayer
@@ -22,6 +21,13 @@ local soundController = knit.CreateController {
     _activeSounds = {}
 }
 
+local function hasProperty(instance, property)
+    local checkExistance = pcall(function()
+        return instance[property]
+    end)
+    return checkExistance
+end
+
 function soundController._maintainFootsteps(self)
     if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") or not player.Character.HumanoidRootPart:FindFirstChild("Running") then
         return
@@ -33,7 +39,7 @@ function soundController._maintainFootsteps(self)
     local floorMaterial: Enum = humanoid.FloorMaterial
     local floorSound = self._soundConfig.footsteps[floorMaterial] or self._soundConfig.footsteps.default
 
-    if self._activeSounds[footsteps] == floorSound then
+    if self._activeSounds["footsteps"] == floorSound then
         return
     end
 
@@ -65,11 +71,15 @@ function soundController._maintainFootsteps(self)
         end
 
         for property, value in pairs(properties) do
-            local propertyExist = promise.new(function()
-                local success = pcall(function() return soundProperty[property] end)
-            end):andThen(function()
-                soundProperty[property] = value
-            end):await()
+            if not hasProperty(soundProperty, property) then
+                continue
+            end
+
+            if not value then
+                continue
+            end
+
+            soundProperty[property] = value
         end
     end
 end
