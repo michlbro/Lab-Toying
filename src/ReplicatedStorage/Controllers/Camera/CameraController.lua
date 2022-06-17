@@ -4,6 +4,7 @@
 -- Services
 local replicatedStorage = game:GetService("ReplicatedStorage")
 local players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
 local runService = game:GetService("RunService")
 
 -- Packages
@@ -16,23 +17,23 @@ local cameraController = knit.CreateController {
     _player = players.LocalPlayer,
     _promiseRunning = nil,
 
-    -- First person settings
     _firstPerson = {
         strength = 1.3
-    }
-
-    -- Rumble settings
+    },
     _rumble = {
         intensity = 1,
         timeTaken = 10
+    },
+    _menu = {
+        cameras = {}
     }
 }
-
-function cameraController
 
 function cameraController:onStart()
     if self._promiseRunning and self._promiseRunning:getStatus() == promise.Status.Started then
         self._promiseRunning:cancel()
+        workspace.CurrentCamera.CameraType = Enum.CameraType.Follow
+        workspace.CurrentCamera.CameraSubject = (self._player.Character) and self._player.Character:FindFirstChild("Humanoid")
     end
     self._promiseRunning = promise.new(function(_, _, onCancel)
         self._player.CameraMode = Enum.CameraMode.LockFirstPerson
@@ -55,7 +56,6 @@ function cameraController:onStart()
         end)
 
         onCancel(function()
-            local character = self._player.Character
             local humanoid: Humanoid = (self._player.Character) and self._player.Character:FindFirstChild("Humanoid") or nil
 
             if humanoid then
@@ -71,14 +71,37 @@ end
 function cameraController:onRumble()
     local cameraService = knit.GetService("cameraService")
     cameraService._onRumble:Connect(function()
-        local t0 = self._rumble.intensity
-        local drainIntensity = 1-(self._rumble.intensity/self._rumble.timeTaken)
-        local rumbleRun = runService.Heartbeat:Connect(function()
-            if t0 < 0.01 then
-                rumbleRun:Disconnect()
+        promise.new(function(resolve)
+            for i = 1, self._rumble.timeTaken do
+                local x = math.random(-100,100)/100
+                local y = math.random(-100,100)/100
+                local humanoid: Humanoid = (self._player.Character) and self._player.Character:FindFirstChild("Humanoid")
+
+                if not humanoid then
+                    task.wait()
+                    continue
+                end
+                humanoid.CameraOffset = humanoid.CameraOffset:lerp(Vector3.new(x,y,0), self._rumble.intensity/i)
             end
+            resolve()
+        end):andThen(function()
+            
         end)
     end)
+end
+
+function cameraController:addMenuCameras(cameraTable)
+    self._menu.cameras[#self._menu.cameras] = cameraTable
+end
+
+function cameraController:onMenu()
+    Workspace.CurrentCamera.CameraType = Enum.CameraType.Scriptable
+    if self._promiseRunning and self._promiseRunning:getStatus() == promise.Status.Started then
+        self._promiseRunning:cancel()
+    end
+
+    local function 
+
 end
 
 function cameraController:KnitStart()
