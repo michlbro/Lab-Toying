@@ -4,8 +4,8 @@
 -- Services
 local replicatedStorage = game:GetService("ReplicatedStorage")
 local players = game:GetService("Players")
-local Workspace = game:GetService("Workspace")
 local runService = game:GetService("RunService")
+local tweenService = game:GetService("TweenService")
 
 -- Packages
 local knit = require(replicatedStorage.Packages.knit)
@@ -25,15 +25,17 @@ local cameraController = knit.CreateController {
         timeTaken = 10
     },
     _menu = {
-        cameras = {}
+        cameras = {},
+        tweenInfo = TweenInfo.new(6, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
     }
 }
 
 function cameraController:onStart()
     if self._promiseRunning and self._promiseRunning:getStatus() == promise.Status.Started then
         self._promiseRunning:cancel()
-        workspace.CurrentCamera.CameraType = Enum.CameraType.Follow
-        workspace.CurrentCamera.CameraSubject = (self._player.Character) and self._player.Character:FindFirstChild("Humanoid")
+        local camera = workspace.CurrentCamera
+        camera.CameraType = Enum.CameraType.Follow
+        camera.CameraSubject = (self._player.Character) and self._player.Character:FindFirstChild("Humanoid")
     end
     self._promiseRunning = promise.new(function(_, _, onCancel)
         self._player.CameraMode = Enum.CameraMode.LockFirstPerson
@@ -85,7 +87,8 @@ function cameraController:onRumble()
             end
             resolve()
         end):andThen(function()
-            
+            local humanoid: Humanoid = (self._player.Character) and self._player.Character:FindFirstChild("Humanoid")
+            humanoid.CameraOffset = Vector3.new(0,0,0)
         end)
     end)
 end
@@ -94,14 +97,39 @@ function cameraController:addMenuCameras(cameraTable)
     self._menu.cameras[#self._menu.cameras] = cameraTable
 end
 
-function cameraController:onMenu()
-    Workspace.CurrentCamera.CameraType = Enum.CameraType.Scriptable
+function cameraController:onMenu(countReturned)
+    workspace.CurrentCamera.CameraType = Enum.CameraType.Scriptable
     if self._promiseRunning and self._promiseRunning:getStatus() == promise.Status.Started then
         self._promiseRunning:cancel()
     end
 
-    local function 
+    local function chooseCamera(count: number)
+        if not count then
+            count = 1
+        end
+        local cameraChosen = self._menu.cameras[count]
 
+        return cameraChosen, count
+    end
+
+    self._promiseRunning = promise.new(function(resolve, _, onCancel)
+        local tween
+
+        local cameraChosen, count = chooseCamera(countReturned)
+        workspace.CurrentCamera.CFrame = cameraChosen.startCFrame
+        tween = tweenService:Create(workspace.CurrentCamera, self._menu.tweenInfo, {CFrame = cameraChosen.endCFrame})
+        tween:Play()
+
+        onCancel(function()
+            tween:Cancel()
+            tween = nil
+        end)
+        tween.Completed:Wait()
+        tween = nil
+        resolve(count)
+    end):andThen(function(count)
+        self:onMenu(count + 1)
+    end)
 end
 
 function cameraController:KnitStart()
