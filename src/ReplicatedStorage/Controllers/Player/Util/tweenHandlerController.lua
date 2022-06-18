@@ -3,6 +3,9 @@
 
 --[=[
     Keeps player on the tween item rather than have them being weld.
+    USAGE: Server
+    tweenHandlerService:addInstance(instance: basepart)
+    -- will then add the part to a table to check if raycasted part is allowed.
 ]=]
 
 -- Services
@@ -16,95 +19,84 @@ local knit = require(replicatedStorage.Packages.knit)
 -- Create tween handler controller
 local tweenHandler = knit.CreateController {
     Name = "tweenHandler",
-    _raycastWhitelist = {workspace.g},
+    _raycastWhitelist = {},
     _raycastVerticalLength = -13
 }
-
-function tweenHandler:includeParts(instance: BasePart)
-    if not instance:IsA("BasePart") then
-        return
-    end
-
-    table.insert(self._raycastWhitelist, instance)
-end
 
 function tweenHandler:run()
     -- Local player
     local player = players.LocalPlayer
 
     -- raycast variables
-    local raycastObject0 = nil
-    local objectCFrame0 = nil
+    local lastObjectRaycast = nil
+    local lastobjectCFrame = nil
 
 
     runService.Heartbeat:Connect(function()
-        -- variables needed.
         local character = player.Character
         local humanoidRootPart = (character) and character:FindFirstChild("HumanoidRootPart")
         local humanoid = (character) and character:FindFirstChildWhichIsA("Humanoid")
 
-        if not humanoidRootPart or humanoid then
+        if not humanoidRootPart or not humanoid then
             return
         end
 
-        local raycastParams = RaycastParams.new()
-        raycastParams.FilterDescendantsInstances = self._raycastWhitelist
-        raycastParams.FilterType = Enum.RaycastFilterType.Whitelist
+        local initalParams = RaycastParams.new()
+        initalParams.FilterDescendantsInstances = self._raycastWhitelist
+        initalParams.FilterType = Enum.RaycastFilterType.Whitelist
 
-        local raycastParams2 = raycastParams.new()
-        raycastParams2.FilterDescendantsInstances = {raycastObject0}
-        raycastParams.FilterType = Enum.RaycastFilterType.Whitelist
+        local finalParams = RaycastParams.new()
+        finalParams.FilterDescendantsInstances = {lastObjectRaycast}
+        finalParams.FilterType = Enum.RaycastFilterType.Whitelist
 
         local downVector = humanoidRootPart.CFrame.UpVector * self._raycastVerticalLength
-        local moveDirection = humanoid.MoveDirection * 2.5
+        local moveDirection = humanoid.MoveDirection * 1
         local angle = downVector - Vector3.new(moveDirection.X, 0, moveDirection.Z)
 
-        local raycastResult0 = workspace:Raycast(humanoidRootPart.CFrame.Position, angle, raycastParams)
-        local raycastObject = workspace:Raycast(humanoidRootPart.CFrame.Position, angle, raycastParams2)
+        local verifiedRaycastResult = nil
 
-        local raycastResult
+        local initalRaycastResult = workspace:Raycast(humanoidRootPart.CFrame.Position, angle, initalParams)
+        local lastObjectRaycastResult = workspace:Raycast(humanoidRootPart.CFrame.Position, angle, finalParams)
 
-        if raycastObject0 and raycastObject then
-            raycastResult = raycastObject
+        if initalRaycastResult and lastObjectRaycast then
+            verifiedRaycastResult = lastObjectRaycastResult
         else
-            raycastResult = raycastResult0
-            raycastObject0 = nil
+            verifiedRaycastResult = initalRaycastResult
+            lastObjectRaycast = nil
         end
 
-        if raycastResult then
-            local raycastInstance = raycastResult.Instance
+        if verifiedRaycastResult then
+            local raycastInstance = verifiedRaycastResult.Instance
 
-            if not objectCFrame0 then
-                objectCFrame0 = raycastInstance.CFrame
+            if not lastobjectCFrame then
+                lastobjectCFrame = raycastInstance.CFrame
             end
 
-            local currentCFrame
+            local currentCFrame = nil
 
-            if raycastObject0 and raycastInstance ~= raycastObject0 then
-                currentCFrame = raycastObject0.CFrame
+            if lastObjectRaycast and raycastInstance ~= lastObjectRaycast then
+                currentCFrame = lastObjectRaycast.CFrame
             else
                 currentCFrame = raycastInstance.CFrame
             end
 
-            local deltaDistance = currentCFrame * objectCFrame0:Inverse()
-            humanoidRootPart.CFrame *= deltaDistance
+            local relativeCFrame = currentCFrame * lastobjectCFrame:Inverse()
+            humanoidRootPart.CFrame = relativeCFrame * humanoidRootPart.CFrame
 
-            raycastObject0 = raycastInstance
-            objectCFrame0 = raycastInstance.CFrame
+            lastObjectRaycast = raycastInstance
+            lastobjectCFrame = raycastInstance.CFrame
         else
-            raycastObject0 = nil
+            lastobjectCFrame = nil
         end
     end)
 end
 
 function tweenHandler:KnitStart()
-    --[[
     local tweenHandlerService = knit.GetService("tweenHandlerService")
-    tweenHandlerService.onInclude:Connect(function(instance: BasePart)
-        self:includeParts(instance)
-    end)]]
-    print("d")
+    tweenHandlerService.onInclude:Connect(function(listOfPartTweens)
+        self._raycastWhitelist = listOfPartTweens
+    end)
     self:run()
 end
-print("g")
+
 return tweenHandler
