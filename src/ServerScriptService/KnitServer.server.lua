@@ -13,9 +13,18 @@ for _,v in pairs(script.Parent.Services:GetDescendants()) do
     end
 end
 
+-- @ Load knit components
+local function loadComponents()
+    for _, v in pairs(script.Parent.Components:GetDescendants()) do
+        if v:IsA("ModuleScript") and v.Name:match("Component$") then
+            require(v)
+        end
+    end
+end
+
 knit.Start():andThen(function()
 
-    
+    loadComponents()
 
     print("[KNIT-Server]: Started!")
 end):catch(warn)
