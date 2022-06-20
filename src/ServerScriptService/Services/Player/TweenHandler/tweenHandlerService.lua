@@ -26,8 +26,8 @@ local tweenHandlerService = knit.CreateService {
     _listOfInstanceTweens = {}
 }
 
-function tweenHandlerService:addInstance(instance: BasePart)
-    if not instance:IsA("BasePart") then
+function tweenHandlerService:addInstance(instance: BasePart?)
+    if not instance:IsA("BasePart") and not instance:IsA("Model") then
         return
     end
 

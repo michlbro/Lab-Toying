@@ -55,6 +55,8 @@ function tramlineComponent:onWeld()
     local base: Model = model:FindFirstChild("Base")
     local doors: Model = model:FindFirstChild("Doors")
 
+    tweenHandlerService:addInstance(base)
+
     local primaryBasePart = (base) and base.PrimaryPart
     local primaryDoorPart = (doors) and doors.PrimaryPart
 

@@ -10,7 +10,7 @@ function tramlineExtention.ShouldConstruct(component)
     return true
 end
 
-function tramlineExtention.ShouldStart(component)
+function tramlineExtention.ShouldStart()
     return true
 end
 
