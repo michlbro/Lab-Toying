@@ -10,6 +10,7 @@
 -- Services
 local replicatedStorage = game:GetService("ReplicatedStorage")
 local tweenService = game:GetService("TweenService")
+local runService = game:GetService("RunService")
 
 -- Packages
 local components = require(replicatedStorage.Packages.component)
@@ -75,7 +76,7 @@ function tramlineComponent:onWeld()
         end
 
         if part ~= primaryBasePart then
-            print("f")
+
             local weld = Instance.new("WeldConstraint")
             weld.Parent = primaryBasePart
             weld.Part0 = primaryBasePart
@@ -125,7 +126,33 @@ function tramlineComponent:Start()
     ]]
     self._tramlineTrackerComponents = require(tramlineTrackerComponentModule)
     self:setupTrackers()
+    self:startEngineSound()
     self:startMain(2)
+end
+
+function tramlineComponent:startEngineSound()
+    -- tram engine sound, get magnitude of previous
+    -- change sound depending on value
+    return promise.new(function()
+        local soundInstance = Instance.new("Sound")
+        soundInstance.Parent = self._partsToTween.tram
+        soundInstance.SoundId = "rbxassetid://532147820"
+        soundInstance.Looped = true
+        soundInstance.PlaybackSpeed = 0
+        soundInstance:Play()
+
+        local previousPosition: Vector3 = nil
+        runService.Heartbeat:Connect(function(deltaTime)
+            local currentPosition = self._partsToTween.tram.CFrame.Position
+            if not previousPosition then
+                previousPosition = currentPosition
+            end
+            local magnitude = (currentPosition - previousPosition).magnitude
+            local speed = (magnitude > 0) and magnitude/deltaTime or 7
+            soundInstance.PlaybackSpeed = (speed/self.tramSpeed >= 1) and 1 or (speed <= 7) and (7/self.tramSpeed) * 1 or speed/self.tramSpeed * 1
+            previousPosition = currentPosition
+        end)
+    end)
 end
 
 function tramlineComponent.chooseWaypoint(tramlineTracker: table, count: number)
@@ -159,7 +186,12 @@ function tramlineComponent:tweenTram(choosenWaypoint, inverse, currenWaypoint)
                 local distance = (tramline.CFrame.Position - points.Position).magnitude
                 local timeForTween = (distance/distanceToNextStation) * timeTaken
 
-                tween = tweenService:Create(tramline, TweenInfo.new(timeForTween, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut) ,{CFrame = points})
+                local easingStyle = Enum.EasingStyle.Linear
+                if i == 1 then
+                    easingStyle = Enum.EasingStyle.Sine
+                end
+
+                tween = tweenService:Create(tramline, TweenInfo.new(timeForTween, easingStyle, Enum.EasingDirection.In) ,{CFrame = points})
                 tween:Play()
                 tween.Completed:Wait()
                 tween = nil
@@ -167,7 +199,7 @@ function tramlineComponent:tweenTram(choosenWaypoint, inverse, currenWaypoint)
             local station = choosenWaypoint.station.CFrame
             local distance = (tramline.CFrame.Position - station.Position).magnitude
             local timeForTween = (distance/distanceToNextStation) * timeTaken
-            tween = tweenService:Create(tramline, TweenInfo.new(timeForTween, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut) ,{CFrame = station})
+            tween = tweenService:Create(tramline, TweenInfo.new(timeForTween, Enum.EasingStyle.Sine, Enum.EasingDirection.Out) ,{CFrame = station})
             tween:Play()
             tween.Completed:Wait()
             tween = nil
@@ -185,7 +217,12 @@ function tramlineComponent:tweenTram(choosenWaypoint, inverse, currenWaypoint)
                 local distance = (tramline.CFrame.Position - waypoint.Position).magnitude
                 local timeForTween = (distance/distanceToNextStation) * timeTaken
 
-                tween = tweenService:Create(tramline, TweenInfo.new(timeForTween, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {CFrame = waypoint})
+                local easingStyle = Enum.EasingStyle.Linear
+                if i == #waypoints then
+                    easingStyle = Enum.EasingStyle.Sine
+                end
+
+                tween = tweenService:Create(tramline, TweenInfo.new(timeForTween, easingStyle, Enum.EasingDirection.In), {CFrame = waypoint})
                 tween:Play()
                 tween.Completed:Wait()
                 tween = nil
@@ -194,8 +231,7 @@ function tramlineComponent:tweenTram(choosenWaypoint, inverse, currenWaypoint)
             local station = choosenWaypoint.station
             local distance = (tramline.CFrame.Position - station.CFrame.Position).magnitude
             local timeForTween = (distance/distanceToNextStation) * timeTaken
-            print(timeForTween)
-            tween = tweenService:Create(tramline, TweenInfo.new(timeForTween, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {CFrame = station.CFrame})
+            tween = tweenService:Create(tramline, TweenInfo.new(timeForTween, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {CFrame = station.CFrame})
             tween:Play()
             tween.Completed:Wait()
             tween = nil
@@ -208,14 +244,15 @@ function tramlineComponent:tramDoor(state)
     return promise.new(function(resolve)
         -- close door
         if state == tramlineDoorState.closed then
-            if not self._doorSettings.doorState == tramlineDoorState.closed then
-                print("closing")
+            if self._doorSettings.doorState ~= tramlineDoorState.closed then
+                self._doorSettings.doorState = tramlineDoorState.closed
+
                 -- anchor and disable weld on door before tweening door
                 self._partsToTween.door.Anchored = true
                 self._doorSettings.doorWeldBody.Enabled = false
 
                 local tweenInfo = TweenInfo.new(3, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
-                local tween = tweenService:Create(self._partsToTween.door, tweenInfo, {CFrame = self._partsToTween.door.CFrame * self._doorSettings.doorPositions.closed})
+                local tween = tweenService:Create(self._partsToTween.door, tweenInfo, {CFrame = self._partsToTween.door.CFrame * self._doorSettings.doorPositions.closed:Inverse()})
                 tween:Play()
                 tween.Completed:Wait()
                 tween = nil
@@ -230,14 +267,15 @@ function tramlineComponent:tramDoor(state)
 
         -- open door
         elseif state == tramlineDoorState.opened then
-            if not self._doorSettings.doorState == tramlineDoorState.opened then
-                print("opening")
+            if self._doorSettings.doorState ~= tramlineDoorState.opened then
+                self._doorSettings.doorState = tramlineDoorState.opened
+
                 -- anchor and disable weld on door before tweending door
                 self._partsToTween.door.Anchored = true
                 self._doorSettings.doorWeldBody.Enabled = false
 
                 local tweenInfo = TweenInfo.new(3, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
-                local tween = tweenService:Create(self._partsToTween.door, tweenInfo, {CFrame = self._partsToTween.door.CFrame * self._doorSettings.doorPositions.opened})
+                local tween = tweenService:Create(self._partsToTween.door, tweenInfo, {CFrame = self._partsToTween.door.CFrame * self._doorSettings.doorPositions.opened:Inverse()})
                 tween:Play()
                 tween.Completed:Wait()
                 tween = nil
@@ -254,7 +292,7 @@ function tramlineComponent:tramDoor(state)
 end
 
 function tramlineComponent:startMain(start)
-    print(self._tramlineTracker)
+
     local choosenWaypoint0 = nil
     for i = start or 1, #self._tramlineTracker do
         local choosenWaypoint = self.chooseWaypoint(self._tramlineTracker, i)
@@ -275,7 +313,8 @@ function tramlineComponent:startMain(start)
         task.wait(self.timeForDoor)
         self:tramDoor(tramlineDoorState.opened):await()
     end
-    self:startMain()
+
+    self:startMain(2)
 end
 
 return tramlineComponent
