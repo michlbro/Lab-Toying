@@ -50,7 +50,7 @@ end
 
 
 function uiController:KnitIni()
-    self.mainScreenMount = Value.new()
+    self.mainScreenMount = Value()
     local screenGui = New "ScreenGui" {
         Parent = playerGui,
         [Children] = self.mainScreenMount,
