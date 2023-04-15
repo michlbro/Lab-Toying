@@ -23,11 +23,11 @@ function ModuleInitialiser:Require(module, _config)
     log:Log(false, `[Server]: Initialising {module.Name}`)
     local required = require(module)
     required(setmetatable({}, {
-        __index = {
+        __index = {_G = {
             log = Log.new(),
             net = self._globalenvironment,
             Start = self.StartEvent
-        }
+        }}
     }))
     log:Log(false, `[Server]: Done! {math.floor(1000*(os.clock() - startTime) + 0.5)}ms`)
 end
