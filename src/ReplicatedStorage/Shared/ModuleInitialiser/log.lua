@@ -1,34 +1,19 @@
 local log = {}
 
 function log:Log(pathName, toLog)
-    print(`{pathName and self._stringPath or ""} \n{toLog} \n `)
+    print(pathName and (`{debug.traceback()}`..`\n{toLog}\n`) or `{toLog}\n`)
 end
 
 function log:Warn(pathName, toWarn)
-    warn(`{pathName and self._stringPath or ""} \n{toWarn} \n `)
+    warn(pathName and (`{debug.traceback()}`..`\n{toWarn}\n`) or `{toWarn}\n`)
 end
 
 function log:Error(pathName, toError)
-    error(`{pathName and self._stringPath or ""} \n{toError} \n `)
+    error(pathName and (`{debug.traceback()}`..`\n{toError}\n`) or `{toError}\n`)
 end
 
-local function GetScriptPath(path, child)
-    if child.Parent == game then
-        table.insert(path, "game")
-        local str = ""
-        for i = #path, 1, -1 do
-            local instance = path[i]
-            str..=`{instance.Name or "game"}/`
-        end
-        return str
-    end
-    table.insert(path, child)
-    return GetScriptPath(path, child.Parent)
-end
-
-local function new(module)
+local function new()
     local self = {}
-    self._stringPath = GetScriptPath({}, module)
     return setmetatable(self, {
         __index = log
     })
