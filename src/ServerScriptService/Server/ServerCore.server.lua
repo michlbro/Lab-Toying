@@ -10,13 +10,15 @@ local classes = server.Classes
 local ModuleInitialiser = require(shared.ModuleInitialiser)
 local GlobalEnvironment = require(configuration.GlobalEnvironment)
 
-local initialiser = ModuleInitialiser.new(GlobalEnvironment)
+local initialiser = ModuleInitialiser.new(GlobalEnvironment, true)
 
-for i, instance in classes:GetDescendants() do
+for _, instance in classes:GetDescendants() do
     if not instance:IsA("ModuleScript") then
         continue
     end
     initialiser:Require(instance, nil)
 end
-print(initialiser)
+print("\n[ServerCore Explorer]:", initialiser, `\n----\n{initialiser:GetLoadedModules()}----\n`, 
+        `Loaded: {initialiser:GetLoadedModulesCount()}\n`,
+        `Errored: {initialiser:GetErroredModulesCount()}`)
 initialiser:Start()
