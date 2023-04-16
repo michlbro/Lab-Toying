@@ -1,3 +1,3 @@
 return {
-    ["Visitor"] = 0,
+    Visitor = "Visitor",
 }

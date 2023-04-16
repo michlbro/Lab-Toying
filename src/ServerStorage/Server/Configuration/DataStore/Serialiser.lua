@@ -18,10 +18,10 @@ local serialiseInstructions = {
 }
 
 return {
-    serialise = function(objType, value)
-        return serialiseInstructions.serialise[objType](value)
+    Serialise = function(objType, value)
+        return {serialiseInstructions.serialise[objType](value), objType}
     end,
-    deserialise = function(objType, value)
+    Deserialise = function(objType, value)
         return serialiseInstructions.deserialise[objType](value)
     end
 }
