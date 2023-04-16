@@ -26,7 +26,8 @@ local function OnPlayerRemoving(playerInstance)
     local playerObject = core._G.net.Players[playerInstance]
     -- SAVE DATA HERE
     if core._G.net.GAMERULES.SaveData then
-        
+        local PlayerSerialisedData = core._G.net.ServerClasses.DataStoreClass.Serialise(core._G.net.VariableContainer.DataStorePlayer:GetDataStructure(), playerObject.cached)
+        core._G.net.VariableContainer.DataStorePlayer:SetPlayerData(playerInstance, PlayerSerialisedData)
     end
     playerObject:Destroy()
     core._G.net.Players[playerInstance] = nil
@@ -64,9 +65,8 @@ return function(main)
             end
             -- GetPlayerData
             local PlayerSerialisedData = core._G.net.VariableContainer.DataStorePlayer:GetPlayerData(player.instance)
-            player.cached = core._G.net.ServerClasses.DataStore.Deserialise(PlayerSerialisedData)
+            player.cached = core._G.net.ServerClasses.DataStoreClass.Deserialise(PlayerSerialisedData)
             core._G.net.Events.Player.LeaderboardUpdate:Fire(playerInstance)
-            print(core._G.net)
             return
         end
 

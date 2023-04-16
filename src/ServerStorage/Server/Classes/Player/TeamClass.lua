@@ -47,7 +47,7 @@ function core.Team:_SetupPlayer()
         self.characterAddedConnection:Disconnect()
     end
     self.player:LoadCharacter()
-    self.characterAddedConnection = self.player.CharacterAdded:Connect(function(character)
+    self.characterAddedConnection = self.player.CharacterAdded:Connect(function()
         self:_UpdateCharacter()
     end)
     return self:_UpdateCharacter()

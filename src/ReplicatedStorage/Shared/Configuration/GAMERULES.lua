@@ -1,4 +1,5 @@
 return {
-    SaveData = false,
+    Dev = true,
+    SaveData = true,
     Team = true
 }

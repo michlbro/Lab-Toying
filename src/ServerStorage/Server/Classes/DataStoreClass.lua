@@ -11,10 +11,13 @@ function core.DataStore.Deserialise(data)
     return cached
 end
 
-function core.DataStore.Serialise(cached)
+function core.DataStore.Serialise(datastructure, cached)
     local data = {}
-    for name, value in cached do
-        data[name] = core.Serialiser.Serialise(value, typeof(value))
+    for name, dataInfo in datastructure do
+        if not cached[name] then
+            continue
+        end
+        data[name] = core.Serialiser.Serialise(dataInfo[2], cached[name])
     end
     return data
 end
@@ -22,7 +25,7 @@ end
 function core.DataStore:GetPlayerData(playerInstance)
     local success, result = pcall(self.datastore.GetAsync, self.datastore, playerInstance.Name)
     local IsEmpty = false
-    for name, _ in core.Data.Default do
+    for name, _ in self.default do
         if not result or not result[name] then
             IsEmpty = true
             break
@@ -30,15 +33,30 @@ function core.DataStore:GetPlayerData(playerInstance)
     end
     if not success or IsEmpty then
         core._G.log:Warn(false, `{playerInstance.Name}'s data request unsuccessful. Resulting back to default values.\nError: {result}`)
-        return core.Data.Default
+        return self.default
     end
     return result
+end
+
+function core.DataStore:SetPlayerData(playerInstance, data)
+    local success, result = pcall(self.datastore.SetAsync, self.datastore, playerInstance.Name, data)
+    if not success then
+        core._G.log:Warn(false, `{playerInstance.Name}'s data did not save successfully.\nError: {result}`)
+        return false
+    end
+    core._G.log:Log(false, `{playerInstance.Name}'s data successfully saved.`)
+    return true
+end
+
+function core.DataStore:GetDataStructure()
+    return self.default
 end
 
 local function new(dataStructure)
     local self = {}
     self.datastoreName = dataStructure.name
     self.datastore = core._G.net.Services.DataStoreService:GetDataStore(self.datastoreName)
+    self.default = dataStructure.datastructure
     return setmetatable(self, {
         __index = core.DataStore
     })
@@ -46,12 +64,10 @@ end
 
 return function(main)
     core = main(core)
-    core._G.net.ServerClasses.DataStore = setmetatable({new = new}, {
+    core._G.net.ServerClasses.DataStoreClass = setmetatable({new = new}, {
         __index = core.DataStore
     })
     core.Serialiser = require(core._G.net.Paths.ServerConfiguration.DataStore.Serialiser)
     local dataStructure = require(core._G.net.Paths.ServerConfiguration.DataStore.DataStructure)
     core._G.net.VariableContainer.DataStorePlayer = new(dataStructure)
-    core.Data.Default = dataStructure.datastructure
-    
 end
