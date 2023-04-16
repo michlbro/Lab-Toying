@@ -39,14 +39,17 @@ function ModuleInitialiser:Require(module, _config)
     log:Log(false, `[{isClient and "Client" or "Server"}]: Initialising {module.Name}`)
     local success, err = pcall(function()
         local required = require(module)
-    required(setmetatable({}, {
-        __index = {
-            _G = {
-                log = Log.new(),
-                net = self._globalenvironment,
-                Start = self.StartEvent
-            }}
-        }))
+        required(function(core)
+            return setmetatable(core, {
+                __index = {
+                    _G = {
+                        log = Log.new(),
+                        net = self._globalenvironment,
+                        Start = self.StartEvent
+                    }
+                }
+            })
+        end)
     end)
     if not success then
         log:Warn(false, `\n[{isClient and "Client" or "Server"}]:\nError Initialising: {module.Name}\nIssue: {err}`)
