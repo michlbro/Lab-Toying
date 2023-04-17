@@ -9,7 +9,6 @@ local SignalClass = require(ReplicatedStorage.Shared.Classes.SignalClass)
 
 return {
     GAMERULES = require(ReplicatedStorage.Shared.Configuration.GAMERULES),
-    GAMERULES
     Paths = {
         ServerConfiguration = ServerStorage.Server.Configuration
     },
