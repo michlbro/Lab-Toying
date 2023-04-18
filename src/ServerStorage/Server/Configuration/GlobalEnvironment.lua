@@ -4,8 +4,9 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 local Workspace = game:GetService("Workspace")
 local DataStoreService = game:GetService("DataStoreService")
+local RunService = game:GetService("RunService")
 
-local SignalClass = require(ReplicatedStorage.Shared.Classes.SignalClass)
+local SignalClass = require(ReplicatedStorage.Shared.Classes.SignalClass.Signal)
 
 return {
     GAMERULES = require(ReplicatedStorage.Shared.Configuration.GAMERULES),
@@ -19,13 +20,15 @@ return {
         ServerStorage = ServerStorage,
         ServerScriptService = ServerScriptService,
         Players = Players,
-        DataStoreService = DataStoreService 
+        DataStoreService = DataStoreService,
+        RunService = RunService
     },
     Players = {},
     ServerClasses = {},
     SharedClasses = {},
     Networking = {
-        Player = require(ReplicatedStorage.Shared.Networking.Player)
+        Player = require(ReplicatedStorage.Shared.Networking.Player),
+        Reactor = require(ReplicatedStorage.Shared.Networking.Reactor)
     },
     Events = {
         Player = {
@@ -33,6 +36,14 @@ return {
             PlayerRemoving = SignalClass.new(),
             TeamChanged = SignalClass.new(),
             LeaderboardUpdate = SignalClass.new()
+        },
+        Reactor = {
+            Step = SignalClass.new(),
+            Current = SignalClass.new(),
+            Power = SignalClass.new(),
+            Warning = SignalClass.new(),
+            Critical = SignalClass.new(),
+            Meltdown = SignalClass.new()
         }
     },
     VariableContainer = {
