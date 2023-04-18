@@ -19,5 +19,6 @@ for _, instance in classes:GetDescendants() do
 end
 print("\n[ClientCore Explorer]:", initialiser, `\n----\n{initialiser:GetLoadedModules()}----\n`, 
         `Loaded: {initialiser:GetLoadedModulesCount()}\n`,
-        `Errored: {initialiser:GetErroredModulesCount()}`)
+	`Errored: {initialiser:GetErroredModulesCount()}`)
+
 initialiser:Start()

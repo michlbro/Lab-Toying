@@ -1,7 +1,7 @@
 return {
     leaderboardStructure = {
-        {"Team", "StringValue"},
-        {"GBP", "NumberValue"}
+        {"GBP", "NumberValue"},
+        {"Team", "StringValue"}
     },
     leaderboardValueLocation = function(player, leaderboard)
         leaderboard.GBP.Value = player.cached.money

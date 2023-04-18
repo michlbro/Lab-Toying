@@ -3,6 +3,11 @@
 registry = "test"
 
 [[package]]
+name = "elttob/fusion"
+version = "0.2.0"
+dependencies = []
+
+[[package]]
 name = "overlinejunior/link"
 version = "0.1.2"
 dependencies = []
@@ -10,4 +15,4 @@ dependencies = []
 [[package]]
 name = "wnace/lab-toying"
 version = "0.1.0"
-dependencies = [["link", "overlinejunior/link@0.1.2"]]
+dependencies = [["fusion", "elttob/fusion@0.2.0"], ["link", "overlinejunior/link@0.1.2"]]

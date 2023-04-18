@@ -10,7 +10,7 @@ local function new(playerInstance: Player)
     local self = {}
     self.instance = playerInstance
     self.cached = {} -- Datastore, ...
-    self.team = core._G.net.ServerClasses.TeamClass.new(core._G.net.ENUMS.Team.Visitor, self.instance)
+    self.team = core._G.net.ServerClasses.TeamClass.new(core._G.net.ENUMS.Team["Test Subject"], self.instance)
     self.leaderboard = core._G.net.ServerClasses.LeaderboardClass.new(self)
     return setmetatable(self, {
         __index = core.Player

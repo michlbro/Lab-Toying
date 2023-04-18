@@ -11,8 +11,14 @@ return {
         Workspace = Workspace,
         Players = Players,
     },
+    Paths = {
+        ClientConfiguration = ReplicatedStorage.Client.Configuration
+    },
+    ClientClasses = {},
     Events = {},
     Networking = {
         Player = require(ReplicatedStorage.Shared.Networking.Player)
-    }
+    },
+    GuiContainer = {},
+    VariableContainer = {}
 }
