@@ -39,6 +39,17 @@
                     "$path": "src/StarterPlayer/StarterPlayerScripts/Client"
                 }
             }
+        },
+
+        "ReplicatedFirst": {
+            "Packages": {
+                "$className": "Folder",
+                "$path": "Packages"
+            },
+            "Client": {
+                "$className": "Folder",
+                "$path": "src/ReplicatedFirst/Client"
+            }
         }
     }
 }

@@ -2,7 +2,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
-local SignalClass = require(ReplicatedStorage.Shared.Classes.SignalClass)
+local _SignalClass = require(ReplicatedStorage.Shared.Classes.SignalClass)
 
 return {
     LocalPlayer = Players.LocalPlayer,
